@@ -7,7 +7,10 @@ import io.netty.buffer.ByteBuf;
 
 import io.netty.util.CharsetUtil;
 
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
 import org.json.JSONObject;
@@ -59,9 +62,6 @@ public class HttpUtil
                 return getQueryStringDecoder(request).parameters();
             }
         }
-        else
-        {
-            return null;
-        }
+        return null;
     }
 }
