@@ -1,0 +1,25 @@
+[
+    {
+      "path": "/helloWorld/{{userid}}",
+      "threshold": 10, 
+      "lock-period": 60000,
+      "method": "GET",
+      "authentication": false
+    },
+    {
+      "path": "/stream/{{channelId}}",
+      "threshold": 50,
+      "lock-period": 30000,
+      "method": "POST",
+      "params": [
+        {
+          "key": "quality",
+          "type": "string",
+          "pattern": "(low|medium|high)",
+          "length": 6
+        }
+      ],
+      "authentication": false
+    }
+  ]
+  

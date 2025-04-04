@@ -1,5 +1,7 @@
 package com.stream.rtmp.config;
 
+import java.util.List;
+
 import java.net.InetSocketAddress;
 
 //import io.netty.channel.*;
@@ -18,14 +20,20 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import com.stream.rtmp.middleware.HttpAuthMiddleWare;
 //import com.example.netty.handler.HttpRequestHandler;
 
+import com.stream.rtmp.router.RouteConfig;
+import com.stream.rtmp.router.RouteMatcher;
+
 public class HttpServerConfig
 {
     private static final int PORT = 8080;
 
     public void start() throws Exception
     {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        List<RouteConfig> HttpRoutes = RouteConfig.loadRoutes();
+        RouteMatcher routeMatcher = new RouteMatcher(HttpRoutes);
+
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
 
         try
         {
@@ -41,7 +49,7 @@ public class HttpServerConfig
                         System.out.println("Initializing HTTP Server Channel...");
                         ch.pipeline().addLast(new HttpServerCodec());
                         ch.pipeline().addLast(new HttpObjectAggregator(50000));
-                        ch.pipeline().addLast(new HttpAuthMiddleWare());
+                        ch.pipeline().addLast(new HttpAuthMiddleWare(routeMatcher));
                     }
                 });
 
@@ -50,7 +58,7 @@ public class HttpServerConfig
             InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
             String ip = socketAddress.getAddress().getLocalHost().toString();
             int port = socketAddress.getPort();
-            System.out.println("HTTP Server started on " + ip + ":" + port);
+            System.out.println("HTTP Server started on "+ ip +":"+ port);
             future.channel().closeFuture().sync();
         }
         catch(Exception e)
