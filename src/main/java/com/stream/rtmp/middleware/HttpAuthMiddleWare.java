@@ -16,6 +16,9 @@ import java.net.InetSocketAddress;
 
 import io.netty.util.CharsetUtil;
 
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelFutureListener;
@@ -35,12 +38,13 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import org.json.JSONObject;
 
 import com.stream.rtmp.utils.HttpUtil;
+import com.stream.rtmp.utils.TimeUtil;
 
 import com.stream.rtmp.router.RateLimiter;
 import com.stream.rtmp.router.RouteConfig;
 import com.stream.rtmp.router.RouteMatcher;
 
-public class HttpAuthMiddleWare extends SimpleChannelInboundHandler<FullHttpRequest>
+public class HttpAuthMiddleWare extends ChannelDuplexHandler
 {
     private RouteMatcher routeMatcher;
 
@@ -50,13 +54,38 @@ public class HttpAuthMiddleWare extends SimpleChannelInboundHandler<FullHttpRequ
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception
     {
+        FullHttpRequest request;
+        if(msg instanceof FullHttpRequest)
+        {
+            request = (FullHttpRequest) msg;
+        }
+        else
+        {
+            System.out.println("Received non-HTTP message: " + msg);
+            return;
+        }
+        System.out.println("****************************landed middleware: " + TimeUtil.getCurrentTime());
+
         String plainUri = request.uri();
+        if(plainUri.contains("/favicon.ico")) {
+            sendResponse(ctx, HttpResponseStatus.NOT_FOUND, "404 Not Found");
+            return;
+        }
         String uri = plainUri.split("\\?")[0];
+        System.out.println("REQUEST URI IS:"+ plainUri);
         RouteConfig matchedRoute = routeMatcher.matchRoute(uri);
+        if(matchedRoute == null)
+        {
+            sendResponse(ctx, HttpResponseStatus.NOT_FOUND, "404 Not Found");
+            return;
+        }
+        System.out.println("MATCHED ROUTE IS:"+ matchedRoute.path + " method:" + matchedRoute.method);
         String requestMethod = request.method().name().toLowerCase();
         String exactMethod = matchedRoute.method.toLowerCase();
+
+        System.out.println("****************************after route matched: " + TimeUtil.getCurrentTime());
 
         System.out.println("landed from auth middleware [uri]"+ plainUri +" method:"+ requestMethod);
 
@@ -76,6 +105,8 @@ public class HttpAuthMiddleWare extends SimpleChannelInboundHandler<FullHttpRequ
         QueryStringDecoder decoder = new QueryStringDecoder(plainUri);
         Map<String, String> params = new HashMap<>();
         decoder.parameters().forEach((key, value) -> params.put(key, value.get(0)));
+
+        System.out.println("****************************after decoded params:"+ TimeUtil.getCurrentTime());
 
         System.out.println("params:"+ params);
 
@@ -107,8 +138,7 @@ public class HttpAuthMiddleWare extends SimpleChannelInboundHandler<FullHttpRequ
         System.out.println("Cookies: "+ cookiesMap);
 
         Map<String, List<String>> queryParams = request.method().equals(HttpMethod.GET)
-            ? HttpUtil.parseRequestParam(request)
-            : null;
+            ? HttpUtil.parseRequestParam(request) : null;
 
         String body = null;
         JSONObject bodyParams = null;
@@ -134,8 +164,10 @@ public class HttpAuthMiddleWare extends SimpleChannelInboundHandler<FullHttpRequ
 
         String content = new String(input.readAllBytes(), StandardCharsets.UTF_8);
 
-        sendResponse(ctx, HttpResponseStatus.OK, content);
-        ctx.fireChannelRead(request.retain());
+        sendResponse(ctx, HttpResponseStatus.OK, "helloWorld");
+        System.out.println("****************************after response sent: " + TimeUtil.getCurrentTime());
+        //ctx.fireChannelRead(request.retain());
+        super.channelRead(ctx, request);
     }
 
     private boolean authenticateRequest(FullHttpRequest request)
@@ -143,11 +175,26 @@ public class HttpAuthMiddleWare extends SimpleChannelInboundHandler<FullHttpRequ
         return request.headers().contains("Authorization");
     }
 
-    private void sendResponse(ChannelHandlerContext ctx, HttpResponseStatus status, String message)
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception
+    {
+        super.write(ctx, msg, promise);
+    }
+
+    @Override
+    public void flush(ChannelHandlerContext ctx) throws Exception
+    {
+        super.flush(ctx);
+    }
+
+    private void sendResponse(ChannelHandlerContext ctx, HttpResponseStatus status, String msg)
     {
         FullHttpResponse response = new DefaultFullHttpResponse(
-                HttpVersion.HTTP_1_1, status, io.netty.buffer.Unpooled.wrappedBuffer(message.getBytes()));
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, message.length());
+            HttpVersion.HTTP_1_1,
+            status,
+            ctx.alloc().buffer().writeBytes(msg.getBytes())
+        );
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, msg.length());
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 }

@@ -80,6 +80,8 @@ public class RouteConfig
             route.method = routeObj.getString("method");
             route.params = new ArrayList<>();
 
+            System.out.println("routepath:"+ route.path +"method:"+ route.method);
+
             JSONArray paramsArray = routeObj.optJSONArray("params");
             if(paramsArray != null)
             {
