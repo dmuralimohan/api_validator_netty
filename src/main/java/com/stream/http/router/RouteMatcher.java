@@ -1,4 +1,4 @@
-package com.stream.rtmp.router;
+package com.stream.http.router;
 
 import java.util.regex.*;
 import java.util.*;

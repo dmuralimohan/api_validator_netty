@@ -1,6 +1,6 @@
-package com.stream.rtmp;
+package com.stream;
 
-import com.stream.rtmp.config.HttpServerConfig;
+import com.stream.http.config.HttpServerConfig;
 
 import java.lang.Exception;
 

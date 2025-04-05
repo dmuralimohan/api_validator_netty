@@ -1,4 +1,4 @@
-package com.stream.rtmp.config;
+package com.stream.http.config;
 
 import java.util.List;
 
@@ -19,13 +19,13 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 
-import com.stream.rtmp.middleware.HttpAuthMiddleWare;
+import com.stream.http.middleware.HttpAuthMiddleWare;
 //import com.example.netty.handler.HttpRequestHandler;
 
-import com.stream.rtmp.utils.TimeUtil;
+import com.stream.http.utils.TimeUtil;
 
-import com.stream.rtmp.router.RouteConfig;
-import com.stream.rtmp.router.RouteMatcher;
+import com.stream.http.router.RouteConfig;
+import com.stream.http.router.RouteMatcher;
 
 public class HttpServerConfig
 {

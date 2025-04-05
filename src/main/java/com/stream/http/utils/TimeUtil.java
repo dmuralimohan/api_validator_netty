@@ -1,4 +1,4 @@
-package com.stream.rtmp.utils;
+package com.stream.http.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

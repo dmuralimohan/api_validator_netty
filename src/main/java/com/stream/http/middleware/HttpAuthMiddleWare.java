@@ -1,4 +1,4 @@
-package com.stream.rtmp.middleware;
+package com.stream.http.middleware;
 
 import java.util.*;
 import java.io.File;
@@ -19,15 +19,16 @@ import io.netty.util.CharsetUtil;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelDuplexHandler;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.SimpleChannelInboundHandler;
+
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -37,12 +38,12 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 
 import org.json.JSONObject;
 
-import com.stream.rtmp.utils.HttpUtil;
-import com.stream.rtmp.utils.TimeUtil;
+import com.stream.http.utils.HttpUtil;
+import com.stream.http.utils.TimeUtil;
 
-import com.stream.rtmp.router.RateLimiter;
-import com.stream.rtmp.router.RouteConfig;
-import com.stream.rtmp.router.RouteMatcher;
+import com.stream.http.router.RateLimiter;
+import com.stream.http.router.RouteConfig;
+import com.stream.http.router.RouteMatcher;
 
 public class HttpAuthMiddleWare extends ChannelDuplexHandler
 {

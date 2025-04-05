@@ -1,4 +1,4 @@
-package com.stream.rtmp.utils;
+package com.stream.http.utils;
 
 import java.util.Map;
 import java.util.List;
